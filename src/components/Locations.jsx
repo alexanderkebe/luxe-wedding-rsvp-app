@@ -8,21 +8,24 @@ function Locations() {
       titleAr: "بيت العروس",
       time: "07:00 AM",
       address: "Bole Medhanialem, Addis Ababa",
-      link: "https://www.google.com/maps/search/Bole+Medhanialem+Church+Addis+Ababa"
+      link: "https://www.google.com/maps/search/Bole+Medhanialem+Church+Addis+Ababa",
+      embedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.6657933937175!2d38.79057867499696!3d9.003460691060966!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b8593a8d9a4e3%3A0x2f9549320e402e6c!2sMedhane%20Alem%20Cathedral!5e0!3m2!1sen!2set!4v1715207460000!5m2!1sen!2set"
     },
     {
       title: "Groom's House",
       titleAr: "بيت العريس",
       time: "09:00 AM",
       address: "CMC Michael, Addis Ababa",
-      link: "https://www.google.com/maps/search/CMC+Michael+Addis+Ababa"
+      link: "https://www.google.com/maps/search/CMC+Michael+Addis+Ababa",
+      embedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.665!2d38.8504!3d9.0156!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b90123456789%3A0x1234567890abcdef!2sCMC+Michael!5e0!3m2!1sen!2set!4v1715183424161!5m2!1sen!2set"
     },
     {
       title: "The Grand Venue",
       titleAr: "قاعة الاحتفال",
       time: "04:00 PM",
       address: "Sheraton Addis, Taitu St",
-      link: "https://www.google.com/maps/search/Sheraton+Addis+Taitu+St+Addis+Ababa"
+      link: "https://www.google.com/maps/search/Sheraton+Addis+Taitu+St+Addis+Ababa",
+      embedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.672809187311!2d38.75739347576571!3d9.020275588825708!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85c8b74681fb%3A0x7d28ef3c9b7405e6!2sSheraton%20Addis%2C%20a%20Luxury%20Collection%20Hotel%2C%20Addis%20Ababa!5e0!3m2!1sen!2set!4v1715183424161!5m2!1sen!2set"
     }
   ];
 
@@ -87,6 +90,27 @@ function Locations() {
             
             <p style={{ color: 'var(--color-on-surface-variant)', fontSize: '13px', marginBottom: '20px' }}>{loc.address}</p>
             
+            {/* Interactive Map */}
+            <div style={{ 
+              width: '100%', 
+              height: '180px', 
+              borderRadius: 'var(--rounded-lg)', 
+              overflow: 'hidden', 
+              marginBottom: '20px',
+              border: '1px solid rgba(201, 168, 76, 0.1)'
+            }}>
+              <iframe
+                title={loc.title}
+                src={loc.embedUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0, filter: 'grayscale(1) contrast(1.2) opacity(0.7) invert(1)' }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+
             <motion.a 
               href={loc.link} 
               target="_blank" 
@@ -105,7 +129,7 @@ function Locations() {
                 transition: 'opacity 0.3s'
               }}
             >
-              View on Maps
+              Open in Google Maps
             </motion.a>
           </motion.div>
         ))}
