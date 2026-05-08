@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../utils/supabaseClient';
 
 function RSVPSection({ onRsvpSuccess }) {
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,8 +17,18 @@ function RSVPSection({ onRsvpSuccess }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const nextStep = () => {
+    if (step === 1 && (!formData.name || !formData.email)) {
+      setError("Please fill in both your name and email.");
+      return;
+    }
+    setError(null);
+    setStep(step + 1);
+  };
+
+  const prevStep = () => setStep(step - 1);
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
@@ -41,127 +52,227 @@ function RSVPSection({ onRsvpSuccess }) {
     }
   };
 
+  const stepVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 50 : -50,
+      opacity: 0,
+      filter: 'blur(10px)'
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      filter: 'blur(0px)',
+      transition: { duration: 0.5, ease: 'easeOut' }
+    },
+    exit: (direction) => ({
+      x: direction < 0 ? 50 : -50,
+      opacity: 0,
+      filter: 'blur(10px)',
+      transition: { duration: 0.3, ease: 'easeIn' }
+    })
+  };
+
   return (
     <section className="section" id="rsvp">
-      <h2 className="section-title">RSVP</h2>
+      <motion.h2 
+        className="section-title"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+      >RSVP</motion.h2>
 
-      <div className="geo-divider" style={{ marginBottom: '48px' }}>
+      <div className="geo-divider" style={{ marginBottom: '40px' }}>
         <div className="geo-diamond" />
       </div>
 
       <motion.div 
         className="glass-card"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ amount: 0.3 }}
-        style={{ padding: '40px 28px' }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        style={{ 
+          padding: '48px 32px', 
+          maxWidth: '500px', 
+          margin: '0 auto',
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: '400px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
       >
-        <p style={{ textAlign: 'center', color: 'var(--color-on-surface-variant)', marginBottom: '36px', fontSize: '12px', letterSpacing: '0.12em' }}>
-          Please respond by November 1st
+        {/* Progress Bar */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.05)' }}>
+          <motion.div 
+            animate={{ width: `${(step / 3) * 100}%` }}
+            style={{ height: '100%', background: 'var(--color-primary)', boxShadow: '0 0 10px var(--color-primary)' }}
+          />
+        </div>
+
+        <p style={{ textAlign: 'center', color: 'var(--color-primary)', fontSize: '10px', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '32px', opacity: 0.6 }}>
+          Step {step} of 3
         </p>
 
         {error && (
-          <div style={{ background: 'var(--color-error-container)', color: 'var(--color-on-error-container)', padding: '14px', marginBottom: '24px', fontSize: '13px', borderRadius: 'var(--rounded-md)' }}>
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ 
+              background: 'rgba(211, 47, 47, 0.1)', 
+              color: '#ff8a80', 
+              padding: '12px', 
+              marginBottom: '24px', 
+              fontSize: '12px', 
+              borderRadius: 'var(--rounded-md)',
+              border: '1px solid rgba(211, 47, 47, 0.2)',
+              textAlign: 'center'
+            }}
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Name</label>
-            <input 
-              type="text" 
-              name="name" 
-              required 
-              className="form-input" 
-              placeholder="Your full name"
-              value={formData.name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input 
-              type="email" 
-              name="email" 
-              required 
-              className="form-input" 
-              placeholder="Email address"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Attendance</label>
-            <div style={{ display: 'flex', gap: '1px' }}>
-              <label style={{ 
-                flex: 1, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                padding: '16px', 
-                cursor: 'pointer', 
-                background: formData.attending === 'yes' ? 'var(--color-primary)' : 'var(--color-surface-container)', 
-                color: formData.attending === 'yes' ? 'var(--color-on-primary)' : 'var(--color-on-surface-variant)', 
-                transition: 'all 0.3s ease',
-                fontSize: '11px',
-                letterSpacing: '0.2em',
-                fontWeight: 500,
-                textTransform: 'uppercase'
-              }}>
-                <input type="radio" name="attending" value="yes" checked={formData.attending === 'yes'} onChange={handleChange} style={{ display: 'none' }} />
-                Accept
-              </label>
-              <label style={{ 
-                flex: 1, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                padding: '16px', 
-                cursor: 'pointer', 
-                background: formData.attending === 'no' ? 'var(--color-primary)' : 'var(--color-surface-container)', 
-                color: formData.attending === 'no' ? 'var(--color-on-primary)' : 'var(--color-on-surface-variant)', 
-                transition: 'all 0.3s ease',
-                fontSize: '11px',
-                letterSpacing: '0.2em',
-                fontWeight: 500,
-                textTransform: 'uppercase'
-              }}>
-                <input type="radio" name="attending" value="no" checked={formData.attending === 'no'} onChange={handleChange} style={{ display: 'none' }} />
-                Decline
-              </label>
-            </div>
-          </div>
-
-          {formData.attending === 'yes' && (
-            <motion.div 
-              className="form-group"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <label className="form-label">Meal Preference</label>
-              <select 
-                name="meal_preference" 
-                className="form-input" 
-                value={formData.meal_preference}
-                onChange={handleChange}
-                style={{ appearance: 'none' }}
+        <div style={{ flex: 1, position: 'relative' }}>
+          <AnimatePresence mode="wait" custom={step}>
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                custom={1}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
               >
-                <option value="halal">Halal</option>
-                <option value="vegetarian">Vegetarian</option>
-                <option value="vegan">Vegan</option>
-              </select>
-            </motion.div>
-          )}
+                <h3 style={{ fontSize: '22px', marginBottom: '24px', textAlign: 'center', letterSpacing: '0.05em' }}>Welcome, Who are you?</h3>
+                <div className="form-group">
+                  <label className="form-label" style={{ opacity: 0.5 }}>Full Name</label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    className="form-input" 
+                    placeholder="Enter your name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--glass-border)' }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ opacity: 0.5 }}>Email Address</label>
+                  <input 
+                    type="email" 
+                    name="email" 
+                    className="form-input" 
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--glass-border)' }}
+                  />
+                </div>
+                <button onClick={nextStep} className="btn btn-primary" style={{ marginTop: '24px', width: '100%' }}>
+                  Continue
+                </button>
+              </motion.div>
+            )}
 
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '16px' }}>
-            {loading ? 'Sending...' : 'Confirm RSVP'}
-          </button>
-        </form>
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                custom={1}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+              >
+                <h3 style={{ fontSize: '22px', marginBottom: '24px', textAlign: 'center', letterSpacing: '0.05em' }}>Will you be attending?</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    padding: '20px', 
+                    cursor: 'pointer',
+                    background: formData.attending === 'yes' ? 'rgba(201, 168, 76, 0.15)' : 'rgba(255,255,255,0.02)',
+                    border: formData.attending === 'yes' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
+                    borderRadius: 'var(--rounded-lg)',
+                    transition: 'all 0.3s'
+                  }}>
+                    <input type="radio" name="attending" value="yes" checked={formData.attending === 'yes'} onChange={handleChange} style={{ marginRight: '12px' }} />
+                    <span style={{ fontSize: '14px', letterSpacing: '0.1em' }}>Yes, I'll be there!</span>
+                  </label>
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    padding: '20px', 
+                    cursor: 'pointer',
+                    background: formData.attending === 'no' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.02)',
+                    border: formData.attending === 'no' ? '1px solid rgba(255,255,255,0.3)' : '1px solid var(--glass-border)',
+                    borderRadius: 'var(--rounded-lg)',
+                    transition: 'all 0.3s'
+                  }}>
+                    <input type="radio" name="attending" value="no" checked={formData.attending === 'no'} onChange={handleChange} style={{ marginRight: '12px' }} />
+                    <span style={{ fontSize: '14px', letterSpacing: '0.1em', opacity: 0.7 }}>Respectfully, I can't make it</span>
+                  </label>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+                  <button onClick={prevStep} className="btn btn-glass" style={{ flex: 1 }}>Back</button>
+                  <button onClick={nextStep} className="btn btn-primary" style={{ flex: 2 }}>Next</button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                custom={1}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+              >
+                {formData.attending === 'yes' ? (
+                  <>
+                    <h3 style={{ fontSize: '22px', marginBottom: '12px', textAlign: 'center', letterSpacing: '0.05em' }}>One last thing...</h3>
+                    <p style={{ textAlign: 'center', fontSize: '13px', opacity: 0.6, marginBottom: '24px' }}>Do you have any meal preferences?</p>
+                    <div className="form-group">
+                      <select 
+                        name="meal_preference" 
+                        className="form-input" 
+                        value={formData.meal_preference}
+                        onChange={handleChange}
+                        style={{ background: 'rgba(255,255,255,0.05)', height: '56px', padding: '0 16px' }}
+                      >
+                        <option value="halal">Halal (Standard)</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="allergy">Other (Allergies)</option>
+                      </select>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '22px', marginBottom: '12px', letterSpacing: '0.05em' }}>We'll miss you!</h3>
+                    <p style={{ fontSize: '14px', opacity: 0.6, lineHeight: 1.6 }}>Thank you for letting us know. We appreciate your response.</p>
+                  </div>
+                )}
+                
+                <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+                  <button onClick={prevStep} className="btn btn-glass" style={{ flex: 1 }}>Back</button>
+                  <button 
+                    onClick={handleSubmit} 
+                    className="btn btn-primary" 
+                    disabled={loading}
+                    style={{ flex: 2 }}
+                  >
+                    {loading ? 'Sending...' : 'Confirm RSVP'}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '40px' }}>
+          <p style={{ fontSize: '12px', fontFamily: "'Noto Sans Arabic', serif", color: 'var(--color-primary)', opacity: 0.4 }}>
+            بارك الله فيكم
+          </p>
+        </div>
       </motion.div>
     </section>
   );
