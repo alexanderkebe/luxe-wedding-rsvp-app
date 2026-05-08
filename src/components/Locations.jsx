@@ -104,7 +104,7 @@ function Locations() {
                 src={loc.embedUrl}
                 width="100%"
                 height="100%"
-                style={{ border: 0, filter: 'grayscale(1) contrast(1.2) opacity(0.7) invert(1)' }}
+                style={{ border: 0, opacity: 0.9 }}
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
